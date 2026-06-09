@@ -6,7 +6,7 @@
 #
 # All rights reserved.
 aiohttp
-aiofiles==24.1.0
+aiofiles==25.1.0
 apscheduler==3.11.0
 beautifulsoup4==4.13.5
 bleach==6.2.0
