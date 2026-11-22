@@ -60,7 +60,7 @@ from MeowRobot.modules.helper_funcs.misc import paginate_modules
 BOT_ID = 7163382841
 BOT_NAME = "MeowRoBot"
 BOT_USERNAME = "MeowRoBot"
-START_IMG = "https://files.catbox.moe/v00l7e.jpg"
+START_IMG = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800"
 def get_readable_time(seconds: int) -> str:
     count = 0
     ping_time = ""
@@ -229,28 +229,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             first_name = update.effective_user.first_name
             text = PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(BOT_NAME))
-            if len(text) > 1024:
-                await update.effective_message.reply_text(
-                    text=text,
-                    reply_markup=InlineKeyboardMarkup(get_buttons()),
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            else:
+            buttons = InlineKeyboardMarkup(get_buttons())
+            try:
                 await update.effective_message.reply_photo(
                     photo=START_IMG,
                     caption=text,
-                    reply_markup=InlineKeyboardMarkup(get_buttons()),
+                    reply_markup=buttons,
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                await update.effective_message.reply_text(
+                    text=text,
+                    reply_markup=buttons,
                     parse_mode=ParseMode.MARKDOWN,
                 )
 
     else:
-        await update.effective_message.reply_photo(
-            START_IMG,
-            caption="ɪ ᴀᴍ ᴀʟɪᴠᴇ ʙᴀʙʏ !\n*ɪ ᴅɪᴅɴ'ᴛ sʟᴇᴘᴛ sɪɴᴄᴇ:* `{}`".format(
-                uptime
-            ),
-            parse_mode=ParseMode.MARKDOWN,
-        )
+        try:
+            await update.effective_message.reply_photo(
+                START_IMG,
+                caption="ɪ ᴀᴍ ᴀʟɪᴠᴇ ʙᴀʙʏ !\n*ɪ ᴅɪᴅɴ'ᴛ sʟᴇᴘᴛ sɪɴᴄᴇ:* `{}`".format(
+                    uptime
+                ),
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception:
+            await update.effective_message.reply_text(
+                "ɪ ᴀᴍ ᴀʟɪᴠᴇ ʙᴀʙʏ !\n*ɪ ᴅɪᴅɴ'ᴛ sʟᴇᴘᴛ sɪɴᴄᴇ:* `{}`".format(
+                    uptime
+                ),
+                parse_mode=ParseMode.MARKDOWN,
+            )
 
 async def error_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error = context.error

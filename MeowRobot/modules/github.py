@@ -8,7 +8,7 @@ import asyncio
 import logging
 import urllib.parse
 import httpx
-from pyrogram import filters, types, enums
+from pyrogram import filters, types, enums, ContinuePropagation
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 from MeowRobot import pbot as bot, DRAGONS as DEV_LIST
@@ -1058,4 +1058,8 @@ async def _init_github_notifier(_, __):
     global _notifier_started
     if not _notifier_started:
         _notifier_started = True
-        asyncio.create_task(github_notifier_worker())
+        try:
+            asyncio.create_task(github_notifier_worker())
+        except Exception:
+            pass
+    raise ContinuePropagation

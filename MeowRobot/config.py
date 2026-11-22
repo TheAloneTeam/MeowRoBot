@@ -22,7 +22,7 @@ class Config(object):
     MONGO_DB_URI = ""  # Get this value from cloud.mongodb.com
 
     # Telegraph link of the image which will be shown at start command.
-    START_IMG = "https://files.catbox.moe/v00l7e.jpg"
+    START_IMG = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800"
 
     SUPPORT_CHAT = "KartikeMishra"  # Your Telegram support group chat username
     SUPPORT_CHANNEL = "AashikTeam"  # Your Telegram channel username for bot updates
