@@ -168,7 +168,7 @@ async def kang(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             extension = "png"
 
-        sticker_filename = f"kangsticker.{extension}"
+        sticker_filename = f"kang_{user.id}_{msg.message_id}.{extension}"
         await kang_file.download_to_drive(sticker_filename)
 
         if args:
@@ -178,138 +178,151 @@ async def kang(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             sticker_emoji = "🤔"
 
-        if not is_animated and not is_video:
-            try:
-                im = Image.open(sticker_filename)
-                maxsize = (512, 512)
-                if (im.width and im.height) < 512:
-                    size1 = im.width
-                    size2 = im.height
-                    if im.width > im.height:
-                        scale = 512 / size1
-                        size1new = 512
-                        size2new = size2 * scale
-                    else:
-                        scale = 512 / size2
-                        size1new = size1 * scale
-                        size2new = 512
-                    size1new = math.floor(size1new)
-                    size2new = math.floor(size2new)
-                    sizenew = (size1new, size2new)
-                    im = im.resize(sizenew)
-                else:
-                    im.thumbnail(maxsize)
-                im.save(sticker_filename, "PNG")
-
+        try:
+            if not is_animated and not is_video:
                 try:
-                    await context.bot.add_sticker_to_set(
-                        user_id=user.id,
-                        name=packname,
-                        sticker=InputSticker(
-                            sticker=open(sticker_filename, "rb"),
-                            emoji_list=[sticker_emoji],
-                            format=StickerFormat.STATIC,
-                        ),
-                    )
-                except BadRequest as e:
-                    if e.message == "Stickerset_invalid":
-                        await makepack_internal(
-                            update,
-                            context,
-                            msg,
-                            user,
-                            sticker_emoji,
-                            packname,
-                            packnum,
-                            sticker=open(sticker_filename, "rb"),
-                        )
+                    im = Image.open(sticker_filename)
+                    maxsize = (512, 512)
+                    if (im.width and im.height) < 512:
+                        size1 = im.width
+                        size2 = im.height
+                        if im.width > im.height:
+                            scale = 512 / size1
+                            size1new = 512
+                            size2new = size2 * scale
+                        else:
+                            scale = 512 / size2
+                            size1new = size1 * scale
+                            size2new = 512
+                        size1new = math.floor(size1new)
+                        size2new = math.floor(size2new)
+                        sizenew = (size1new, size2new)
+                        im = im.resize(sizenew)
                     else:
-                        raise e
+                        im.thumbnail(maxsize)
+                    im.save(sticker_filename, "PNG")
 
-                await msg.reply_text(
-                    f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
-                    + f"\nEmoji is: {sticker_emoji}",
-                    disable_web_page_preview=True,
-                    parse_mode=ParseMode.MARKDOWN,
-                )
+                    with open(sticker_filename, "rb") as st_file:
+                        try:
+                            await context.bot.add_sticker_to_set(
+                                user_id=user.id,
+                                name=packname,
+                                sticker=InputSticker(
+                                    sticker=st_file,
+                                    emoji_list=[sticker_emoji],
+                                    format=StickerFormat.STATIC,
+                                ),
+                            )
+                        except BadRequest as e:
+                            if e.message == "Stickerset_invalid":
+                                st_file.seek(0)
+                                await makepack_internal(
+                                    update,
+                                    context,
+                                    msg,
+                                    user,
+                                    sticker_emoji,
+                                    packname,
+                                    packnum,
+                                    sticker=st_file,
+                                )
+                            else:
+                                raise e
 
-            except Exception as e:
-                await msg.reply_text(f"Error: {e}")
-                return
+                    await msg.reply_text(
+                        f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
+                        + f"\nEmoji is: {sticker_emoji}",
+                        disable_web_page_preview=True,
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
 
-        elif is_animated:
-             # Animated sticker handling
-             try:
-                 await context.bot.add_sticker_to_set(
-                    user_id=user.id,
-                    name=packname,
-                    sticker=InputSticker(
-                        sticker=open(sticker_filename, "rb"),
-                        emoji_list=[sticker_emoji],
-                        format=StickerFormat.ANIMATED,
-                    ),
-                )
-             except BadRequest as e:
-                 if e.message == "Stickerset_invalid":
-                      await makepack_internal(
-                            update,
-                            context,
-                            msg,
-                            user,
-                            sticker_emoji,
-                            packname,
-                            packnum,
-                            sticker=open(sticker_filename, "rb"),
-                            is_animated=True,
-                        )
-                 else:
-                     raise e
-             await msg.reply_text(
-                    f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
-                    + f"\nEmoji is: {sticker_emoji}",
-                    disable_web_page_preview=True,
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-        elif is_video:
-             # Video sticker handling
-              try:
-                 await context.bot.add_sticker_to_set(
-                    user_id=user.id,
-                    name=packname,
-                    sticker=InputSticker(
-                        sticker=open(sticker_filename, "rb"),
-                        emoji_list=[sticker_emoji],
-                        format=StickerFormat.VIDEO,
-                    ),
-                )
-              except BadRequest as e:
-                 if e.message == "Stickerset_invalid":
-                      await makepack_internal(
-                            update,
-                            context,
-                            msg,
-                            user,
-                            sticker_emoji,
-                            packname,
-                            packnum,
-                            sticker=open(sticker_filename, "rb"),
-                            is_video=True,
-                        )
-                 else:
-                     raise e
-              await msg.reply_text(
-                    f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
-                    + f"\nEmoji is: {sticker_emoji}",
-                    disable_web_page_preview=True,
-                    parse_mode=ParseMode.MARKDOWN,
-                )
+                except Exception as e:
+                    await msg.reply_text(f"Error: {e}")
+                    return
 
-    if os.path.isfile("kangsticker.png"):
-        os.remove("kangsticker.png")
-    if os.path.isfile("kangsticker.tgs"):
-        os.remove("kangsticker.tgs")
-    if os.path.isfile("kangsticker.webm"):
-        os.remove("kangsticker.webm")
+            elif is_animated:
+                try:
+                    with open(sticker_filename, "rb") as st_file:
+                        try:
+                            await context.bot.add_sticker_to_set(
+                                user_id=user.id,
+                                name=packname,
+                                sticker=InputSticker(
+                                    sticker=st_file,
+                                    emoji_list=[sticker_emoji],
+                                    format=StickerFormat.ANIMATED,
+                                ),
+                            )
+                        except BadRequest as e:
+                            if e.message == "Stickerset_invalid":
+                                st_file.seek(0)
+                                await makepack_internal(
+                                    update,
+                                    context,
+                                    msg,
+                                    user,
+                                    sticker_emoji,
+                                    packname,
+                                    packnum,
+                                    sticker=st_file,
+                                    is_animated=True,
+                                )
+                            else:
+                                raise e
+                    await msg.reply_text(
+                        f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
+                        + f"\nEmoji is: {sticker_emoji}",
+                        disable_web_page_preview=True,
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
+                except Exception as e:
+                    await msg.reply_text(f"Error: {e}")
+                    return
+
+            elif is_video:
+                try:
+                    with open(sticker_filename, "rb") as st_file:
+                        try:
+                            await context.bot.add_sticker_to_set(
+                                user_id=user.id,
+                                name=packname,
+                                sticker=InputSticker(
+                                    sticker=st_file,
+                                    emoji_list=[sticker_emoji],
+                                    format=StickerFormat.VIDEO,
+                                ),
+                            )
+                        except BadRequest as e:
+                            if e.message == "Stickerset_invalid":
+                                st_file.seek(0)
+                                await makepack_internal(
+                                    update,
+                                    context,
+                                    msg,
+                                    user,
+                                    sticker_emoji,
+                                    packname,
+                                    packnum,
+                                    sticker=st_file,
+                                    is_video=True,
+                                )
+                            else:
+                                raise e
+                    await msg.reply_text(
+                        f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
+                        + f"\nEmoji is: {sticker_emoji}",
+                        disable_web_page_preview=True,
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
+                except Exception as e:
+                    await msg.reply_text(f"Error: {e}")
+                    return
+        finally:
+            if os.path.isfile(sticker_filename):
+                try:
+                    os.remove(sticker_filename)
+                except Exception:
+                    pass
 
 
 async def makepack_internal(
@@ -382,17 +395,17 @@ async def makepack_internal(
 
 
 __help__ = """
- ❍ /stickerid*:* reply to a sticker to me to tell you its file ID.
- ❍ /getsticker*:* reply to a sticker to me to upload its raw PNG file.
- ❍ /kang*:* reply to a sticker to add it to your pack.
- ❍ /stickers*:* Find stickers for given term on combot sticker catalogue
+  /stickerid*:* reply to a sticker to me to tell you its file ID.
+  /getsticker*:* reply to a sticker to me to upload its raw PNG file.
+  /kang or /pkang*:* reply to a sticker or photo to add it to your pack.
+  /stickers*:* Find stickers for given term on combot sticker catalogue
 """
 
 __mod_name__ = "Sᴛɪᴄᴋᴇʀ"
 
 STICKERID_HANDLER = DisableAbleCommandHandler("stickerid", stickerid)
 GETSTICKER_HANDLER = DisableAbleCommandHandler("getsticker", getsticker)
-KANG_HANDLER = DisableAbleCommandHandler("kang", kang, admin_ok=True)
+KANG_HANDLER = DisableAbleCommandHandler(["kang", "pkang"], kang, admin_ok=True)
 STICKERS_HANDLER = DisableAbleCommandHandler("stickers", cb_sticker)
 
 application.add_handler(STICKERS_HANDLER)

@@ -1,6 +1,9 @@
 import os
+import glob
+import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
+import yt_dlp
 from pyrogram import filters, types
 
 from MeowRobot import pbot as bot
@@ -13,14 +16,18 @@ __help__ = """
 *Social Downloader🌐*
 
 *Description:*  
-Download media from popular platforms like Instagram and Pinterest directly through the bot.
+Download media from popular platforms like Instagram, Twitter/X, TikTok, and Pinterest directly through the bot.
 
 *Commands:*  
 ❂ `/ig <url>` or `/insta <url>` — Download Instagram Reels or Posts  
+❂ `/tw <url>` or `/twitter <url>` or `/x <url>` — Download Twitter / X Video  
+❂ `/tt <url>` or `/tiktok <url>` — Download TikTok Video  
 ❂ `/pinterest <url>` or `/pin <query>` — Download Pinterest image or video  
 
 *Examples:*  
 `/ig https://www.instagram.com/reel/C8xxx/`  
+`/tw https://x.com/user/status/12345678`  
+`/tt https://www.tiktok.com/@user/video/12345678`  
 `/pin cute anime wallpaper`
 """
 
@@ -51,6 +58,21 @@ async def instagram_download(link: str) -> list:
         pass
     return results
 
+
+def download_ytdl_video(url: str, output_template: str) -> str:
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'outtmpl': output_template,
+        'quiet': True,
+        'no_warnings': True,
+        'merge_output_format': 'mp4',
+        'max_filesize': 50 * 1024 * 1024,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        return ydl.prepare_filename(info).rsplit('.', 1)[0] + '.mp4'
+
+
 @bot.on_message(filters.command(["ig", "insta", "igdl"]) & ~filters.forwarded)
 async def insta_handler(_, m: types.Message):
     if len(m.command) < 2:
@@ -75,6 +97,87 @@ async def insta_handler(_, m: types.Message):
     except Exception as e:
         await loading.edit_text(f"❌ **Error:** {e}")
 
+
+@bot.on_message(filters.command(["tw", "twitter", "x"]) & ~filters.forwarded)
+async def twitter_handler(_, m: types.Message):
+    if len(m.command) < 2:
+        return await m.reply_text(font("❌ Please provide a Twitter/X URL.\nExample: `/tw https://x.com/...`"))
+
+    url = m.command[1].strip()
+    loading = await m.reply_text(font("⏳ Downloading Twitter/X video..."))
+    out_tmpl = f"tw_{m.chat.id}_{m.id}.%(ext)s"
+    final_video = None
+
+    try:
+        loop = asyncio.get_event_loop()
+        final_video = await loop.run_in_executor(None, download_ytdl_video, url, out_tmpl)
+
+        if not final_video or not os.path.exists(final_video):
+            matches = glob.glob(f"tw_{m.chat.id}_{m.id}*")
+            if matches:
+                final_video = matches[0]
+
+        if final_video and os.path.exists(final_video):
+            bot_name = bot.me.username if bot.me else "MeowRoBot"
+            await m.reply_video(
+                video=final_video,
+                caption=f"🐦 **Twitter / X Video Downloaded**\n**By @{bot_name} ⚡**"
+            )
+            await loading.delete()
+        else:
+            await loading.edit_text(font("❌ Could not download video from this URL. Make sure it's public and valid."))
+
+    except Exception as e:
+        await loading.edit_text(f"❌ **Error:** {e}")
+
+    finally:
+        for f in glob.glob(f"tw_{m.chat.id}_{m.id}*"):
+            try:
+                os.remove(f)
+            except Exception:
+                pass
+
+
+@bot.on_message(filters.command(["tt", "tiktok"]) & ~filters.forwarded)
+async def tiktok_handler(_, m: types.Message):
+    if len(m.command) < 2:
+        return await m.reply_text(font("❌ Please provide a TikTok URL.\nExample: `/tt https://vt.tiktok.com/...`"))
+
+    url = m.command[1].strip()
+    loading = await m.reply_text(font("⏳ Downloading TikTok video..."))
+    out_tmpl = f"tt_{m.chat.id}_{m.id}.%(ext)s"
+    final_video = None
+
+    try:
+        loop = asyncio.get_event_loop()
+        final_video = await loop.run_in_executor(None, download_ytdl_video, url, out_tmpl)
+
+        if not final_video or not os.path.exists(final_video):
+            matches = glob.glob(f"tt_{m.chat.id}_{m.id}*")
+            if matches:
+                final_video = matches[0]
+
+        if final_video and os.path.exists(final_video):
+            bot_name = bot.me.username if bot.me else "MeowRoBot"
+            await m.reply_video(
+                video=final_video,
+                caption=f"🎵 **TikTok Video Downloaded**\n**By @{bot_name} ⚡**"
+            )
+            await loading.delete()
+        else:
+            await loading.edit_text(font("❌ Could not download video from this TikTok link."))
+
+    except Exception as e:
+        await loading.edit_text(f"❌ **Error:** {e}")
+
+    finally:
+        for f in glob.glob(f"tt_{m.chat.id}_{m.id}*"):
+            try:
+                os.remove(f)
+            except Exception:
+                pass
+
+
 @bot.on_message(filters.command(["pin", "pinterest"]) & ~filters.forwarded)
 async def pin_handler(_, m: types.Message):
     if len(m.command) < 2:
@@ -84,7 +187,6 @@ async def pin_handler(_, m: types.Message):
     loading = await m.reply_text(font("⏳ Searching Pinterest..."))
 
     try:
-        # Search unsplash / pinterest-like images using public API
         search_url = f"https://source.unsplash.com/1080x1920/?{query.replace(' ', '+')}"
         bot_name = bot.me.username if bot.me else "MeowRoBot"
         await m.reply_photo(search_url, caption=f"🎨 **Pinterest Search:** `{query}`\n**By @{bot_name} ⚡**")
