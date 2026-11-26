@@ -35,6 +35,9 @@ def get_full_name(user) -> str:
         return "Unknown"
     return f"{user.first_name} {user.last_name or ''}".strip()
 
+
+# Database collections
+gamedb = db.game_users
 stealdb = db.game_steals
 
 async def get_cash(user_id: int) -> int:
