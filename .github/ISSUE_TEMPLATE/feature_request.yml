@@ -1,0 +1,28 @@
+name: "🚀 Feature Request"
+description: Suggest an idea or new feature for MeowRoBot
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make MeowRoBot even better? Tell us about it!
+  - type: input
+    id: title
+    attributes:
+      label: Feature Title
+      description: Short title of the feature.
+      placeholder: e.g. Add Captcha verification for new joiners
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem & Proposed Solution
+      description: What problem does this solve or what new functionality does it introduce?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered.

@@ -76,7 +76,7 @@ if ENV:
     TOKEN = os.environ.get("TOKEN", None)
     TIME_API_KEY = os.environ.get("TIME_API_KEY", None)
     CHATBOT_API_URL = os.environ.get("CHATBOT_API_URL", "https://chatbot.riteshyt.in/api/chat")
-    CHATBOT_API_KEY = os.environ.get("CHATBOT_API_KEY", "ritesh-8179b3a5da99f300be2d50e1e9789729")
+    CHATBOT_API_KEY = os.environ.get("CHATBOT_API_KEY", None)
     WORKERS = int(os.environ.get("WORKERS", 8))
 
     try:

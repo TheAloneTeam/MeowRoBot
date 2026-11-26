@@ -1,0 +1,45 @@
+name: "🐛 Bug Report"
+description: File a bug report to help us improve MeowRoBot
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+  - type: input
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: A concise summary of the issue.
+      placeholder: e.g. /ban command crashes when user has no username
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior.
+      placeholder: |
+        1. Go to group chat
+        2. Run command `/ban @user`
+        3. See error in terminal
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback / Logs
+      description: Paste any error traceback from your terminal or log file.
+      render: shell
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Deployment Environment
+      options:
+        - Docker / Docker Compose
+        - Local VPS (Ubuntu/Debian)
+        - Heroku
+        - Railway / Render
+        - Other
+    validations:
+      required: true
